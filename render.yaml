@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ai-post-generator
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash start.sh
+    envVars:
+      - key: API_KEY
+        sync: false
+      - key: API_URL
+        value: https://api.proxyapi.ru/openai/v1/chat/completions
+      - key: MODEL
+        value: gpt-5.4-mini
+      - key: DEFAULT_TONE
+        value: дружелюбный, искренний, с лёгким юмором
+      - key: VK_ACCESS_TOKEN
+        sync: false
+      - key: VK_OWNER_ID
+        sync: false

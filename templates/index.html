@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Генератор постов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        /* Навигация по вкладкам */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .label-hint {
+            font-weight: normal;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="datetime-local"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+            justify-content: center;
+            font-size: 18px;
+            padding: 15px;
+        }
+
+        .btn-publish-now {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-schedule {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .btn-favorite {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #333;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .result-card {
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-preview {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            min-height: 150px;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .success-message {
+            background: #51cf66;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            animation: fadeIn 0.3s;
+            text-align: center;
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .mood-option {
+            position: relative;
+        }
+
+        .mood-option input[type="radio"] {
+            display: none;
+        }
+
+        .mood-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: normal;
+        }
+
+        .mood-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #f0f0ff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .mood-option label:hover {
+            border-color: #667eea;
+            background: #f8f8ff;
+        }
+
+        /* Блок действий с постом */
+        .post-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .publish-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border: 2px solid #e0e0ff;
+        }
+
+        .publish-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .schedule-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .schedule-row input[type="datetime-local"] {
+            flex: 1;
+        }
+
+        .publish-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .generating .spinner {
+            display: inline-block;
+        }
+
+        /* Список избранных и отложенных */
+        .list-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .list-item .item-text {
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 10px;
+        }
+
+        .list-item .item-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .list-item .item-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .btn-small:hover {
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-scheduled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Кнопка редактирования */
+        .edit-btn {
+            background: none;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            color: #667eea;
+        }
+
+        .edit-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .edit-btn.active {
+            background: #11998e;
+            border-color: #11998e;
+            color: white;
+        }
+
+        /* Режим редактирования */
+        .post-editor {
+            display: none;
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.7;
+            resize: vertical;
+            margin-top: 15px;
+        }
+
+        .post-editor:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .post-header h2 {
+            margin: 0;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ AI Генератор постов</h1>
+        <p class="subtitle">Создавайте посты с AI и публикуйте ВКонтакте</p>
+
+        <!-- Вкладки навигации -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('generator')">📝 Генератор</button>
+            <button class="tab-btn" onclick="switchTab('favorites')">⭐ Избранное</button>
+            <button class="tab-btn" onclick="switchTab('scheduled')">📅 Отложенные</button>
+        </div>
+
+        <!-- Вкладка: Генератор -->
+        <div class="tab-content active" id="tab-generator">
+            <div class="card">
+                <form id="postForm">
+                    <div class="form-group">
+                        <label for="product_url">🔗 Ссылка на товар</label>
+                        <input type="url" id="product_url" name="product_url" placeholder="https://example.com/product" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additional_info">
+                            📝 Дополнительно
+                            <span class="label-hint">(необязательно, но улучшит результат)</span>
+                        </label>
+                        <textarea id="additional_info" name="additional_info" placeholder="Например: Беспроводные наушники, 2000 руб., отличный звук, батарея на 12 часов"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎭 Настроение поста</label>
+                        <div class="mood-grid">
+                            <div class="mood-option">
+                                <input type="radio" id="mood_happy" name="mood" value="радостный" checked>
+                                <label for="mood_happy">🎉 Радостный</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_inspiring" name="mood" value="вдохновляющий">
+                                <label for="mood_inspiring">💡 Вдохновляющий</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_professional" name="mood" value="профессиональный">
+                                <label for="mood_professional">💼 Профессиональный</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_trustworthy" name="mood" value="доверительный">
+                                <label for="mood_trustworthy">🤝 Доверительный</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_urgent" name="mood" value="срочный">
+                                <label for="mood_urgent">⏰ Срочный</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-generate" id="generateBtn">
+                        <span class="spinner"></span>
+                        <span class="btn-text">✨ Сформировать пост</span>
+                    </button>
+                </form>
+
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+
+            <!-- Результат генерации -->
+            <div class="card result-card" id="resultCard">
+                <div class="post-header">
+                    <h2 class="section-title" style="border: none; padding: 0; margin: 0;">📄 Готовый пост</h2>
+                    <button class="edit-btn" id="editBtn" title="Редактировать пост">✏️</button>
+                </div>
+
+                <!-- Режим просмотра -->
+                <div class="post-preview" id="postPreview"></div>
+
+                <!-- Режим редактирования -->
+                <textarea class="post-editor" id="postEditor" title="Редактируйте текст поста"></textarea>
+
+                <div class="editor-actions">
+                    <button class="save-btn" id="saveBtn">💾 Сохранить</button>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="post-actions">
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" id="copyBtn">📋 Скопировать</button>
+                        <button class="btn btn-favorite" id="favoriteBtn">⭐ В избранное</button>
+                    </div>
+
+                    <!-- Блок публикации -->
+                    <div class="publish-section">
+                        <h3>📤 Публикация ВКонтакте</h3>
+
+                        <!-- Выбор времени для отложенного поста -->
+                        <div class="schedule-row">
+                            <input type="datetime-local" id="scheduleTime" title="Выберите время публикации">
+                        </div>
+
+                        <!-- Кнопки публикации -->
+                        <div class="publish-buttons">
+                            <button class="btn btn-publish-now" id="publishNowBtn">🚀 Опубликовать сейчас</button>
+                            <button class="btn btn-schedule" id="publishScheduledBtn">📅 Отложенная публикация</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-message" id="successMessage"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка: Избранное -->
+        <div class="tab-content" id="tab-favorites">
+            <div class="card">
+                <h2 class="section-title">⭐ Избранные посты</h2>
+                <div id="favoritesList"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка: Отложенные -->
+        <div class="tab-content" id="tab-scheduled">
+            <div class="card">
+                <h2 class="section-title">📅 Отложенные посты</h2>
+                <div id="scheduledList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPost = '';
+        let isEditing = false;
+
+        // Переключение режима редактирования
+        document.getElementById('editBtn').addEventListener('click', function() {
+            const preview = document.getElementById('postPreview');
+            const editor = document.getElementById('postEditor');
+            const saveBtn = document.getElementById('saveBtn');
+            const editBtn = this;
+
+            if (!isEditing) {
+                // Включаем режим редактирования
+                editor.value = currentPost;
+                preview.style.display = 'none';
+                editor.style.display = 'block';
+                saveBtn.style.display = 'inline-flex';
+                editBtn.classList.add('active');
+                editBtn.title = 'Отменить редактирование';
+                isEditing = true;
+                editor.focus();
+            } else {
+                // Отменяем редактирование
+                preview.style.display = 'block';
+                editor.style.display = 'none';
+                saveBtn.style.display = 'none';
+                editBtn.classList.remove('active');
+                editBtn.title = 'Редактировать пост';
+                isEditing = false;
+            }
+        });
+
+        // Сохранение отредактированного поста
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            const editor = document.getElementById('postEditor');
+            const preview = document.getElementById('postPreview');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = this;
+
+            // Сохраняем текст из редактора
+            currentPost = editor.value;
+            preview.textContent = currentPost;
+
+            // Возвращаем режим просмотра
+            preview.style.display = 'block';
+            editor.style.display = 'none';
+            saveBtn.style.display = 'none';
+            editBtn.classList.remove('active');
+            editBtn.title = 'Редактировать пост';
+            isEditing = false;
+
+            showSuccess('Изменения сохранены');
+        });
+
+        // Переключение вкладок
+        function switchTab(tabName) {
+            // Убираем активные классы
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Активируем нужную вкладку
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Загружаем данные при переключении
+            if (tabName === 'favorites') loadFavorites();
+            if (tabName === 'scheduled') loadScheduled();
+        }
+
+        // Генерация поста
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const productUrl = document.getElementById('product_url').value.trim();
+            const additionalInfo = document.getElementById('additional_info').value.trim();
+            const mood = document.querySelector('input[name="mood"]:checked').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const resultCard = document.getElementById('resultCard');
+            const generateBtn = document.getElementById('generateBtn');
+
+            errorMessage.style.display = 'none';
+            resultCard.classList.remove('show');
+
+            if (!productUrl) {
+                errorMessage.textContent = 'Добавьте ссылку на товар';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.classList.add('generating');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        product_url: productUrl,
+                        additional_info: additionalInfo,
+                        mood: mood
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    errorMessage.textContent = data.error;
+                    errorMessage.style.display = 'block';
+                } else if (data.post) {
+                    currentPost = data.post;
+                    document.getElementById('postPreview').textContent = data.post;
+                    resultCard.classList.add('show');
+                    resultCard.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Произошла ошибка при генерации. Попробуйте снова.';
+                errorMessage.style.display = 'block';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('generating');
+            }
+        });
+
+        // Копирование поста
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            // Берём текст из текущего видимого режима
+            const postText = isEditing
+                ? document.getElementById('postEditor').value
+                : document.getElementById('postPreview').textContent;
+
+            showSuccess('Пост скопирован');
+
+            navigator.clipboard.writeText(postText).catch(function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = postText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            });
+        });
+
+        // Добавление в избранное
+        document.getElementById('favoriteBtn').addEventListener('click', async function() {
+            if (!currentPost) return;
+
+            // Если режим редактирования — сначала сохраняем
+            if (isEditing) {
+                document.getElementById('saveBtn').click();
+            }
+
+            try {
+                const response = await fetch('/favorites', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ post_text: currentPost })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showSuccess('Пост добавлен в избранное ⭐');
+                }
+            } catch (error) {
+                showError('Ошибка при добавлении в избранное');
+            }
+        });
+
+        // Публикация сейчас
+        document.getElementById('publishNowBtn').addEventListener('click', async function() {
+            if (!currentPost) return;
+
+            // Если режим редактирования — сначала сохраняем
+            if (isEditing) {
+                document.getElementById('saveBtn').click();
+            }
+
+            await publishPost('now', '');
+        });
+
+        // Отложенная публикация
+        document.getElementById('publishScheduledBtn').addEventListener('click', async function() {
+            if (!currentPost) return;
+
+            // Если режим редактирования — сначала сохраняем
+            if (isEditing) {
+                document.getElementById('saveBtn').click();
+            }
+
+            const scheduleTime = document.getElementById('scheduleTime').value;
+            if (!scheduleTime) {
+                showError('Выберите время публикации');
+                return;
+            }
+
+            await publishPost('scheduled', scheduleTime);
+        });
+
+        // Функция публикации
+        async function publishPost(type, scheduleTime) {
+            const publishNowBtn = document.getElementById('publishNowBtn');
+            const publishScheduledBtn = document.getElementById('publishScheduledBtn');
+
+            // Блокируем кнопки на время публикации
+            publishNowBtn.disabled = true;
+            publishScheduledBtn.disabled = true;
+
+            try {
+                const response = await fetch('/publish', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        post_text: currentPost,
+                        publish_type: type,
+                        schedule_time: scheduleTime
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showSuccess(data.message);
+                } else {
+                    showError(data.error || data.message);
+                }
+            } catch (error) {
+                showError('Ошибка при публикации');
+            } finally {
+                publishNowBtn.disabled = false;
+                publishScheduledBtn.disabled = false;
+            }
+        }
+
+        // Загрузка избранного
+        async function loadFavorites() {
+            const container = document.getElementById('favoritesList');
+
+            try {
+                const response = await fetch('/favorites');
+                const data = await response.json();
+
+                if (data.favorites.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⭐</div>
+                            <p>Пока нет избранных постов</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.favorites.map(fav => `
+                    <div class="list-item">
+                        <div class="item-actions">
+                            <button class="btn-small" style="background: #667eea;" onclick="copyFavorite('${fav.id}')">📋</button>
+                            <button class="btn-small btn-danger" onclick="removeFavorite(${fav.id})">🗑️</button>
+                        </div>
+                        <div class="item-text">${escapeHtml(fav.text)}</div>
+                        <div class="item-meta">Сохранён: ${new Date(fav.saved_at).toLocaleString('ru-RU')}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p class="error-message">Ошибка загрузки</p>';
+            }
+        }
+
+        // Загрузка отложенных постов
+        async function loadScheduled() {
+            const container = document.getElementById('scheduledList');
+
+            try {
+                const response = await fetch('/scheduled');
+                const data = await response.json();
+
+                if (data.scheduled.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <p>Пока нет отложенных постов</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.scheduled.map(post => `
+                    <div class="list-item">
+                        <div class="item-actions">
+                            <button class="btn-small" style="background: #667eea;" onclick="copyScheduled('${post.id}')">📋</button>
+                            <button class="btn-small btn-danger" onclick="removeScheduled(${post.id})">🗑️</button>
+                        </div>
+                        <span class="status-badge status-scheduled">Отложен</span>
+                        <div class="item-text">${escapeHtml(post.text)}</div>
+                        <div class="item-meta">Публикация: ${new Date(post.scheduled_time).toLocaleString('ru-RU')}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p class="error-message">Ошибка загрузки</p>';
+            }
+        }
+
+        // Копирование избранного
+        async function copyFavorite(id) {
+            const response = await fetch('/favorites');
+            const data = await response.json();
+            const fav = data.favorites.find(f => f.id == id);
+            if (fav) {
+                navigator.clipboard.writeText(fav.text);
+                showSuccess('Скопировано');
+            }
+        }
+
+        // Удаление из избранного
+        async function removeFavorite(id) {
+            await fetch(`/favorites/${id}`, { method: 'DELETE' });
+            loadFavorites();
+        }
+
+        // Копирование отложенного
+        async function copyScheduled(id) {
+            const response = await fetch('/scheduled');
+            const data = await response.json();
+            const post = data.scheduled.find(p => p.id == id);
+            if (post) {
+                navigator.clipboard.writeText(post.text);
+                showSuccess('Скопировано');
+            }
+        }
+
+        // Удаление отложенного
+        async function removeScheduled(id) {
+            await fetch(`/scheduled/${id}`, { method: 'DELETE' });
+            loadScheduled();
+        }
+
+        // Утилиты
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            el.style.background = '#51cf66';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
