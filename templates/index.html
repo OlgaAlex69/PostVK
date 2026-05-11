@@ -503,7 +503,10 @@
 <body>
     <div class="container">
         <h1>✨ AI Генератор постов</h1>
-        <p class="subtitle">Создавайте посты с AI и публикуйте ВКонтакте</p>
+        <p class="subtitle" style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+            Создавайте посты с AI и публикуйте ВКонтакте
+            <a href="https://github.com/OlgaAlex69/PostVK" target="_blank" style="color:white;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;">🐙 GitHub</a>
+        </p>
 
         <!-- Вкладки навигации -->
         <div class="tabs">
@@ -533,16 +536,12 @@
                         <label>🎭 Настроение поста</label>
                         <div class="mood-grid">
                             <div class="mood-option">
-                                <input type="radio" id="mood_happy" name="mood" value="радостный" checked>
-                                <label for="mood_happy">🎉 Радостный</label>
-                            </div>
-                            <div class="mood-option">
-                                <input type="radio" id="mood_inspiring" name="mood" value="вдохновляющий">
-                                <label for="mood_inspiring">💡 Вдохновляющий</label>
-                            </div>
-                            <div class="mood-option">
-                                <input type="radio" id="mood_professional" name="mood" value="профессиональный">
+                                <input type="radio" id="mood_professional" name="mood" value="профессиональный" checked>
                                 <label for="mood_professional">💼 Профессиональный</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_funny" name="mood" value="весёлый">
+                                <label for="mood_funny">😂 Весёлый</label>
                             </div>
                             <div class="mood-option">
                                 <input type="radio" id="mood_trustworthy" name="mood" value="доверительный">
@@ -551,6 +550,10 @@
                             <div class="mood-option">
                                 <input type="radio" id="mood_urgent" name="mood" value="срочный">
                                 <label for="mood_urgent">⏰ Срочный</label>
+                            </div>
+                            <div class="mood-option">
+                                <input type="radio" id="mood_intriguing" name="mood" value="интригующий">
+                                <label for="mood_intriguing">🔮 Интригующий</label>
                             </div>
                         </div>
                     </div>
