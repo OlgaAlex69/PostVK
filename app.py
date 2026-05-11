@@ -348,5 +348,11 @@ def remove_scheduled(post_id):
     return jsonify({'success': True, 'message': 'Отложенный пост удалён'})
 
 
+@app.route('/check-vk')
+def check_vk():
+    """Проверяет, настроены ли данные ВК"""
+    return jsonify({'configured': bool(VK_ACCESS_TOKEN and VK_OWNER_ID)})
+
+
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=int(os.getenv('PORT', 3000)))

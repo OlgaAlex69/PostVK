@@ -630,6 +630,21 @@
         let currentPost = '';
         let isEditing = false;
 
+        // Проверка настроек ВК при загрузке
+        async function checkVkSetup() {
+            try {
+                const r = await fetch('/check-vk');
+                const d = await r.json();
+                if (!d.configured) {
+                    const banner = document.createElement('div');
+                    banner.style.cssText = 'background:#fff3cd;color:#856404;padding:12px 20px;border-radius:10px;margin-bottom:20px;text-align:center;font-weight:600;';
+                    banner.innerHTML = '⚠️ ВКонтакте не настроен. Добавь <b>VK_ACCESS_TOKEN</b> и <b>VK_OWNER_ID</b> в Render Dashboard → Environment (или в локальный <code>.env</code>)';
+                    document.querySelector('.container').prepend(banner);
+                }
+            } catch(e) {}
+        }
+        checkVkSetup();
+
         // Переключение режима редактирования
         document.getElementById('editBtn').addEventListener('click', function() {
             const preview = document.getElementById('postPreview');
@@ -879,6 +894,7 @@
                     <div class="list-item">
                         <div class="item-actions">
                             <button class="btn-small" style="background: #667eea;" onclick="copyFavorite('${fav.id}')">📋</button>
+                            <button class="btn-small" style="background: #11998e;" onclick="editFavorite('${fav.id}')">✏️</button>
                             <button class="btn-small btn-danger" onclick="removeFavorite(${fav.id})">🗑️</button>
                         </div>
                         <div class="item-text">${escapeHtml(fav.text)}</div>
@@ -932,6 +948,21 @@
             if (fav) {
                 navigator.clipboard.writeText(fav.text);
                 showSuccess('Скопировано');
+            }
+        }
+
+        // Загрузка избранного в редактор
+        async function editFavorite(id) {
+            const response = await fetch('/favorites');
+            const data = await response.json();
+            const fav = data.favorites.find(f => f.id == id);
+            if (fav) {
+                currentPost = fav.text;
+                document.getElementById('postPreview').textContent = fav.text;
+                document.getElementById('resultCard').classList.add('show');
+                switchTab('generator');
+                document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+                showSuccess('Пост загружен в редактор');
             }
         }
 
