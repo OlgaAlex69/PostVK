@@ -81,7 +81,7 @@ def get_system_prompt(mood):
 
 {structure}
 
-{mood_descriptions.get(mood, mood_descriptions['радостный'])}
+{mood_descriptions.get(mood, mood_descriptions['профессиональный'])}
 
 Правила:
 - Пиши на русском языке
